@@ -133,12 +133,8 @@ class UIComponents:
             
             # Model selection based on provider
             if ai_provider == "local":
-                ai_model = st.selectbox(
-                    "Model",
-                    options=["llama2", "llama3", "mistral", "phi", "codellama"],
-                    index=0,
-                    help="Select local model. Make sure it's installed: ollama pull <model>"
-                )
+                # Hardcoded to mistral - no user selection
+                ai_model = "mistral"
                 api_key = None  # No API key needed for local
                 
                 # Check if Ollama is actually available
