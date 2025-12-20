@@ -14,8 +14,9 @@ Responsibilities:
 import logging
 import tempfile
 import time
-from typing import Optional, Union
+from typing import Optional, Union, Generator
 from pathlib import Path
+from contextlib import contextmanager
 
 try:
     from pydub import AudioSegment
@@ -28,31 +29,29 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def save_uploaded_file(uploaded_file, filename: Optional[str] = None) -> str:
+@contextmanager
+def temp_file_context(uploaded_file, filename: Optional[str] = None) -> Generator[str, None, None]:
     """
-    Save an uploaded file to temporary storage.
+    Context manager for handling temporary files using NamedTemporaryFile.
+    Saves the file, yields the path, and ensures cleanup on exit.
 
     Args:
         uploaded_file: Streamlit UploadedFile object or bytes
-        filename: Optional original filename (used to preserve extension)
+        filename: Optional original filename
 
-    Returns:
-        Path to saved file as string
-
-    Raises:
-        Exception: If file cannot be saved
+    Yields:
+        Path to the temporary file
     """
-    try:
-        # Determine file extension
-        suffix = ""
-        if filename:
-            suffix = Path(filename).suffix
-        elif hasattr(uploaded_file, "name"):
-            suffix = Path(uploaded_file.name).suffix
+    # Determine file extension
+    suffix = ""
+    if filename:
+        suffix = Path(filename).suffix
+    elif hasattr(uploaded_file, "name"):
+        suffix = Path(uploaded_file.name).suffix
 
-        # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix="aitranscript_")
-
+    # Use NamedTemporaryFile as a context manager
+    # delete=True ensures the file is deleted when the context exits
+    with tempfile.NamedTemporaryFile(delete=True, suffix=suffix, prefix="aitranscript_") as temp_file:
         # Write content
         if hasattr(uploaded_file, "read"):
             # Streamlit UploadedFile object
@@ -62,15 +61,12 @@ def save_uploaded_file(uploaded_file, filename: Optional[str] = None) -> str:
             temp_file.write(uploaded_file)
         else:
             raise ValueError(f"Unsupported file type: {type(uploaded_file)}")
-
-        temp_file.close()
-
-        logger.info(f"Saved uploaded file to: {temp_file.name}")
-        return temp_file.name
-
-    except Exception as e:
-        logger.error(f"Error saving uploaded file: {e}")
-        raise Exception(f"Failed to save uploaded file: {str(e)}")
+        
+        # Flush to ensure data is written to disk
+        temp_file.flush()
+        
+        logger.info(f"Saved uploaded file to temporary context: {temp_file.name}")
+        yield temp_file.name
 
 
 def cleanup_temp_files(file_path: Union[str, Path]) -> None:
@@ -233,30 +229,3 @@ def convert_audio_to_wav(input_path: str, output_path: Optional[str] = None) -> 
         raise Exception(f"Failed to convert audio: {str(e)}")
 
 
-def save_bytes_to_temp_file(audio_bytes: bytes, suffix: str = ".wav") -> str:
-    """
-    Save audio bytes to a temporary file.
-
-    Args:
-        audio_bytes: Audio data as bytes
-        suffix: File extension (default: .wav)
-
-    Returns:
-        Path to saved temporary file
-
-    Raises:
-        Exception: If file cannot be saved
-    """
-    try:
-        temp_file = tempfile.NamedTemporaryFile(
-            delete=False, suffix=suffix, prefix="aitranscript_recording_"
-        )
-        temp_file.write(audio_bytes)
-        temp_file.close()
-
-        logger.info(f"Saved audio bytes to temporary file: {temp_file.name}")
-        return temp_file.name
-
-    except Exception as e:
-        logger.error(f"Error saving audio bytes to temp file: {e}")
-        raise Exception(f"Failed to save audio bytes: {str(e)}")

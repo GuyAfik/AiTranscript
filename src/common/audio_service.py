@@ -29,7 +29,7 @@ from typing import Union, Optional, Dict, Any
 from pathlib import Path
 import whisper
 from src.utils.validators import validate_audio_file
-from src.utils.file_handler import cleanup_temp_files, save_bytes_to_temp_file, get_audio_duration
+from src.utils.file_handler import cleanup_temp_files, temp_file_context, get_audio_duration
 
 logger = logging.getLogger(__name__)
 
@@ -188,30 +188,19 @@ class AudioTranscriptionService:
         Raises:
             Exception: If transcription fails
         """
-        temp_file_path = None
         try:
             logger.info("Transcribing audio from bytes data")
 
-            # Save bytes to temporary file
-            temp_file_path = save_bytes_to_temp_file(audio_bytes, suffix=file_extension)
-
-            # Transcribe the temporary file
-            result = self.transcribe_file(temp_file_path, language)
-
-            return result
+            # Use context manager for temporary file
+            with temp_file_context(audio_bytes, filename=f"audio{file_extension}") as temp_file_path:
+                # Transcribe the temporary file
+                result = self.transcribe_file(temp_file_path, language)
+                return result
 
         except Exception as e:
             error_msg = f"Error transcribing audio data: {str(e)}"
             logger.error(error_msg)
             raise Exception(error_msg)
-
-        finally:
-            # Clean up temporary file
-            if temp_file_path:
-                try:
-                    cleanup_temp_files(temp_file_path)
-                except Exception as e:
-                    logger.warning(f"Error cleaning up temp file {temp_file_path}: {e}")
 
     def get_model_info(self) -> Dict[str, Any]:
         """
