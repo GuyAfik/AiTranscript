@@ -20,13 +20,6 @@ import logging
 import os
 import tempfile
 from typing import Optional, List, Dict, Any
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api._errors import (
-    TranscriptsDisabled,
-    NoTranscriptFound,
-    VideoUnavailable,
-    YouTubeRequestFailed,
-)
 from src.utils.validators import validate_youtube_url, extract_video_id_from_url
 from src.utils.file_handler import cleanup_temp_files
 
@@ -196,12 +189,15 @@ class YouTubeService:
         self, video_id: str, languages: Optional[List[str]] = None, use_fallback: bool = True
     ) -> Dict[str, Any]:
         """
-        Fetch transcript from YouTube video with automatic fallback.
+        Fetch transcript from YouTube video by downloading audio and using Whisper.
+        
+        Note: The 'use_fallback' parameter is kept for compatibility but ignored,
+        as this method now always uses the audio download + Whisper approach.
 
         Args:
             video_id: YouTube video ID
             languages: Preferred languages (default: ['en'])
-            use_fallback: Whether to use Whisper fallback if transcript API fails
+            use_fallback: Ignored (kept for compatibility)
 
         Returns:
             Dictionary containing:
@@ -209,177 +205,55 @@ class YouTubeService:
                 - language: Detected language
                 - duration: Video duration in seconds
                 - segments: Individual transcript segments
-                - source: 'youtube_api' or 'whisper_fallback'
+                - source: 'whisper_audio'
+                - video_id: Video ID
 
         Raises:
-            Exception: If transcript is unavailable and fallback fails or is disabled
+            Exception: If audio download or transcription fails
         """
         if languages is None:
             languages = ["en"]
 
         try:
-            logger.info(f"Fetching transcript for video ID: {video_id}")
+            logger.info(f"Processing video ID: {video_id} via audio download")
+            
+            if self.audio_service is None:
+                raise Exception("Audio service not available for transcription")
 
-            # Try to fetch transcript using YouTube API
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-
-            # Try to get transcript in preferred languages
-            transcript = None
-            detected_language = None
-
-            try:
-                # Try to find manually created transcript first
-                for lang in languages:
-                    try:
-                        transcript = transcript_list.find_manually_created_transcript([lang])
-                        detected_language = lang
-                        logger.info(f"Found manually created transcript in language: {lang}")
-                        break
-                    except NoTranscriptFound:
-                        continue
-
-                # If no manual transcript, try generated
-                if transcript is None:
-                    for lang in languages:
-                        try:
-                            transcript = transcript_list.find_generated_transcript([lang])
-                            detected_language = lang
-                            logger.info(f"Found generated transcript in language: {lang}")
-                            break
-                        except NoTranscriptFound:
-                            continue
-
-                # If still no transcript, get any available
-                if transcript is None:
-                    transcript = transcript_list.find_transcript(languages)
-                    detected_language = transcript.language_code
-                    logger.info(f"Found transcript in language: {detected_language}")
-
-            except NoTranscriptFound:
-                raise Exception(
-                    f"No transcript found for video {video_id} in languages: {languages}"
-                )
-
-            # Fetch the actual transcript data
-            transcript_data = transcript.fetch()
-
-            # Combine all text segments
-            full_text = " ".join([entry["text"] for entry in transcript_data])
-
-            # Calculate duration (last segment's start time + duration)
-            duration = 0.0
-            if transcript_data:
-                last_segment = transcript_data[-1]
-                duration = last_segment["start"] + last_segment.get("duration", 0)
-
-            result = {
-                "text": full_text,
-                "language": detected_language or transcript.language_code,
-                "duration": duration,
-                "segments": transcript_data,
-                "source": "youtube_api",
-                "video_id": video_id,
-            }
-
-            logger.info(
-                f"Successfully fetched transcript from YouTube API: {len(full_text)} characters, {len(transcript_data)} segments"
-            )
+            # Use first language from list for Whisper, or None for auto-detect
+            whisper_lang = languages[0] if languages and languages[0] != "en" else None
+            
+            # Reuse the existing logic which does exactly what we want:
+            # 1. Create temp dir
+            # 2. Download audio
+            # 3. Transcribe with Whisper
+            # 4. Cleanup
+            result = self._transcribe_with_whisper(video_id, whisper_lang)
+            
+            # Update source to reflect this is now the primary method
+            result["source"] = "whisper_audio"
+            
             return result
 
-        except (
-            TranscriptsDisabled,
-            NoTranscriptFound,
-            VideoUnavailable,
-            YouTubeRequestFailed,
-            AttributeError,
-        ) as e:
-            # Log the API error
-            api_error = (
-                f"YouTube Transcript API error for video {video_id}: {type(e).__name__}: {str(e)}"
-            )
-            logger.warning(api_error)
-
-            # Try fallback if enabled
-            if use_fallback and self.audio_service is not None:
-                logger.info(f"Attempting Whisper fallback for video {video_id}")
-                try:
-                    # Use first language from list for Whisper, or None for auto-detect
-                    whisper_lang = languages[0] if languages and languages[0] != "en" else None
-                    return self._transcribe_with_whisper(video_id, whisper_lang)
-                except Exception as fallback_error:
-                    error_msg = f"Both YouTube API and Whisper fallback failed for video {video_id}. API error: {api_error}. Fallback error: {str(fallback_error)}"
-                    logger.error(error_msg)
-                    raise Exception(error_msg)
-            else:
-                # No fallback available or disabled
-                if not use_fallback:
-                    error_msg = (
-                        f"YouTube Transcript API failed and fallback is disabled: {api_error}"
-                    )
-                else:
-                    error_msg = f"YouTube Transcript API failed and no audio service available for fallback: {api_error}"
-                logger.error(error_msg)
-                raise Exception(error_msg)
-
         except Exception as e:
-            error_msg = f"Unexpected error fetching transcript for video {video_id}: {str(e)}"
+            error_msg = f"Error processing video {video_id}: {str(e)}"
             logger.error(error_msg)
-
-            # Try fallback for unexpected errors too
-            if use_fallback and self.audio_service is not None:
-                logger.info(
-                    f"Attempting Whisper fallback after unexpected error for video {video_id}"
-                )
-                try:
-                    whisper_lang = languages[0] if languages and languages[0] != "en" else None
-                    return self._transcribe_with_whisper(video_id, whisper_lang)
-                except Exception as fallback_error:
-                    final_error = f"Both YouTube API and Whisper fallback failed. Original error: {str(e)}. Fallback error: {str(fallback_error)}"
-                    logger.error(final_error)
-                    raise Exception(final_error)
-            else:
-                raise Exception(error_msg)
+            raise Exception(error_msg)
 
     def get_available_languages(self, video_id: str) -> List[str]:
         """
         Get list of available transcript languages for a video.
-
+        
+        Note: Since we are now using Whisper for all transcriptions, we don't rely on
+        YouTube's available captions. Whisper can detect the language automatically.
+        
         Args:
             video_id: YouTube video ID
 
         Returns:
-            List of available language codes
-
-        Raises:
-            Exception: If video not found or languages cannot be retrieved
+            List of available language codes (always returns ['auto-detect'] as we use Whisper)
         """
-        try:
-            logger.info(f"Fetching available languages for video: {video_id}")
-
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-
-            # Get all available language codes
-            languages = []
-            for transcript in transcript_list:
-                languages.append(transcript.language_code)
-
-            logger.info(f"Available languages for {video_id}: {languages}")
-            return languages
-
-        except TranscriptsDisabled:
-            error_msg = f"Transcripts are disabled for video: {video_id}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-
-        except VideoUnavailable:
-            error_msg = f"Video is unavailable: {video_id}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
-
-        except Exception as e:
-            error_msg = f"Error fetching available languages for video {video_id}: {str(e)}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
+        return ["auto-detect"]
 
     def get_transcript_from_url(
         self, url: str, languages: Optional[List[str]] = None, use_fallback: bool = True

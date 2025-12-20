@@ -24,8 +24,6 @@ dependencies = [
     # Transcription & Audio Processing
     "openai-whisper>=20231117",
     "ffmpeg-python>=0.2.0",
-    # YouTube Integration
-    "youtube-transcript-api>=0.6.1",
     "yt-dlp>=2023.12.30",
     # AI Services
     "openai>=1.6.1",
