@@ -216,7 +216,7 @@ ports:
 2. **Backups**: Regularly backup the `ollama_models` volume
 3. **Monitoring**: Set up health checks and monitoring
 4. **Scaling**: For high traffic, consider multiple instances with load balancing
-5. **Security**: 
+5. **Security**:
    - Don't expose Ollama port (11434) publicly
    - Use environment variables for secrets
    - Keep Docker images updated

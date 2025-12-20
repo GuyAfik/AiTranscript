@@ -622,18 +622,18 @@ class Config:
     # OpenAI settings
     OPENAI_API_KEY: str
     OPENAI_MODEL: str
-    
+
     # Whisper settings
     WHISPER_MODEL_SIZE: str
     WHISPER_DEVICE: str
-    
+
     # Application settings
     MAX_FILE_SIZE_MB: int
     TEMP_DIR: Path
-    
+
     @classmethod
     def load_from_env()
-    
+
     @classmethod
     def validate()
 ```
@@ -995,7 +995,7 @@ class YouTubeService:
     """
     Service for extracting transcripts from YouTube videos.
     """
-    
+
     def get_transcript(
         self,
         url: str,
@@ -1003,11 +1003,11 @@ class YouTubeService:
     ) -> dict:
         """
         Extract transcript from YouTube video.
-        
+
         Args:
             url: YouTube video URL
             languages: Preferred languages (default: ['en'])
-            
+
         Returns:
             {
                 'text': str,           # Full transcript text
@@ -1015,7 +1015,7 @@ class YouTubeService:
                 'duration': float,     # Video duration in seconds
                 'segments': list       # Individual transcript segments
             }
-            
+
         Raises:
             YouTubeError: If transcript unavailable or URL invalid
         """
@@ -1028,7 +1028,7 @@ class AudioTranscriptionService:
     """
     Service for transcribing audio files using Whisper.
     """
-    
+
     def transcribe(
         self,
         audio_source: Union[str, bytes],
@@ -1036,11 +1036,11 @@ class AudioTranscriptionService:
     ) -> dict:
         """
         Transcribe audio to text.
-        
+
         Args:
             audio_source: File path or audio bytes
             language: Language code (None for auto-detect)
-            
+
         Returns:
             {
                 'text': str,           # Full transcription
@@ -1048,7 +1048,7 @@ class AudioTranscriptionService:
                 'segments': list,      # Timestamped segments
                 'duration': float      # Audio duration
             }
-            
+
         Raises:
             WhisperError: If transcription fails
         """
@@ -1061,7 +1061,7 @@ class AICleanupService:
     """
     Service for AI-powered text summarization and cleanup.
     """
-    
+
     def summarize(
         self,
         text: str,
@@ -1069,11 +1069,11 @@ class AICleanupService:
     ) -> dict:
         """
         Generate AI summary of transcript.
-        
+
         Args:
             text: Transcript text to summarize
             style: Summary style ('concise', 'detailed', 'bullet')
-            
+
         Returns:
             {
                 'summary': str,        # Main summary
@@ -1081,7 +1081,7 @@ class AICleanupService:
                 'word_count': int,     # Original word count
                 'summary_ratio': float # Compression ratio
             }
-            
+
         Raises:
             AIServiceError: If API call fails
         """

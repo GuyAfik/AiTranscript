@@ -60,11 +60,16 @@ packages = ["src"]
 
 [tool.uv]
 dev-dependencies = [
+    # Testing
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
+    # Code Formatting & Linting
     "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.7.0",
+    # Pre-commit hooks
+    "pre-commit>=3.5.0",
+    "validate-pyproject>=0.24.1",
 ]
 
 [tool.black]
