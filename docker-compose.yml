@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  aitranscript:
+    build: .
+    ports:
+      - "8501:8501"  # Streamlit
+      - "11434:11434"  # Ollama API
+    environment:
+      - AI_PROVIDER=local
+      - LOCAL_MODEL=llama2
+      - WHISPER_MODEL_SIZE=base
+    volumes:
+      # Persist Ollama models
+      - ollama_data:/root/.ollama
+      # Optional: mount local code for development
+      # - ./src:/app/src
+      # - ./app.py:/app/app.py
+    restart: unless-stopped
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+volumes:
+  ollama_data:
+    driver: local

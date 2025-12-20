@@ -275,9 +275,9 @@ ruff check .
 ### Step-by-Step Guide
 
 1. **Configure Settings** (in sidebar):
-   - Select AI provider (OpenAI or Gemini)
+   - Select AI provider (Local LLM or OpenAI)
    - Choose your model
-   - Enter your API key
+   - Enter your API key (only for OpenAI)
    - Select processing mode (Summarize or Refine)
    - Configure mode-specific options
 
@@ -313,19 +313,41 @@ ruff check .
 
 ## 🚢 Deployment
 
-### Streamlit Cloud (Recommended for MVP)
+### Docker Deployment (Recommended)
+
+AiTranscript can be deployed using Docker for easy setup and portability. This is the **recommended method** for deploying with local LLM support.
+
+**Quick Start**:
+```bash
+# Clone and navigate to the project
+git clone <repository-url>
+cd AiTranscript
+
+# Start with Docker Compose
+docker-compose up -d
+
+# Access at http://localhost:8501
+```
+
+**Important**: See [`DEPLOYMENT.md`](DEPLOYMENT.md) for complete deployment instructions, including:
+- Why Vercel is **not compatible** with local LLMs
+- Recommended platforms (Railway, Render, DigitalOcean)
+- Detailed Docker setup and configuration
+- Environment variables and resource requirements
+- Troubleshooting guide
+
+### Alternative: Streamlit Cloud (OpenAI Only)
+
+If you want to use Streamlit Cloud, you **must use OpenAI provider** (local LLM not supported):
 
 1. Push your code to GitHub
 2. Sign up for [Streamlit Cloud](https://streamlit.io/cloud)
 3. Connect your GitHub repository
 4. Add your `OPENAI_API_KEY` in the Secrets section
-5. Deploy!
+5. Set `AI_PROVIDER=openai` in Secrets
+6. Deploy!
 
-### Docker (Coming Soon)
-
-```bash
-docker-compose up
-```
+**Note**: This option requires an OpenAI API key and incurs API costs. For free, private AI processing, use Docker deployment with local LLM.
 
 ## 🤝 Contributing
 
@@ -341,7 +363,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Ollama](https://ollama.ai/) for local LLM support
 - [Streamlit](https://streamlit.io/) for the web framework
 - [OpenAI](https://openai.com/) for GPT API
-- [Google Gemini](https://ai.google.dev/) for Gemini API
 
 ## 📞 Support
 
@@ -349,4 +370,4 @@ For issues and questions, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ using Streamlit, Whisper, OpenAI GPT, and Google Gemini**
+**Built with ❤️ using Streamlit, Whisper, Ollama, and OpenAI GPT**
