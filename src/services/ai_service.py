@@ -28,9 +28,16 @@ import logging
 from typing import Optional, List, Dict, Any
 from openai import OpenAI
 from openai import OpenAIError, RateLimitError, APIError
-import ollama
 
 logger = logging.getLogger(__name__)
+
+# Conditional import for ollama - only needed for local provider
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    logger.warning("Ollama not available - local LLM provider will not work")
 
 
 class AICleanupService:
@@ -61,6 +68,12 @@ class AICleanupService:
         
         if self.provider == "local":
             # Local LLM via Ollama - no API key needed
+            if not OLLAMA_AVAILABLE:
+                raise ImportError(
+                    "Ollama is not installed. Local LLM provider requires Ollama.\n"
+                    "Install it from: https://ollama.ai\n"
+                    "Or use 'openai' provider instead."
+                )
             self.client = None  # Ollama uses direct function calls
             logger.info(f"AI cleanup service initialized with local LLM model: {model}")
         elif self.provider == "openai":
