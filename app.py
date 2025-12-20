@@ -67,8 +67,14 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
         st.session_state.processing = True
         
         with st.spinner("🔍 Extracting transcript from YouTube..."):
-            # Initialize YouTube service
-            youtube_service = YouTubeService()
+            # Initialize audio service for fallback
+            audio_service = AudioTranscriptionService(
+                model_size=settings['model_size'],
+                device='cpu'
+            )
+            
+            # Initialize YouTube service with audio service for fallback
+            youtube_service = YouTubeService(audio_service=audio_service)
             
             # Get transcript
             languages = [settings['language']] if settings['language'] else ['en']
@@ -76,8 +82,16 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
             
             st.session_state.transcript_result = result['text']
             
-            st.success(f"✅ Transcript extracted successfully! ({len(result['text'])} characters)")
-            logger.info(f"YouTube transcript extracted: {len(result['text'])} characters")
+            # Show different success message based on source
+            if result.get('source') == 'whisper_fallback':
+                st.success(
+                    f"✅ Transcript extracted using Whisper (YouTube API unavailable)! "
+                    f"({len(result['text'])} characters, language: {result['language']})"
+                )
+                logger.info(f"YouTube transcript extracted via Whisper fallback: {len(result['text'])} characters")
+            else:
+                st.success(f"✅ Transcript extracted successfully! ({len(result['text'])} characters)")
+                logger.info(f"YouTube transcript extracted: {len(result['text'])} characters")
         
         # Process with AI if API key is available
         if settings['api_key']:
@@ -91,7 +105,8 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
             str(e),
             suggestions=[
                 "Check if the YouTube URL is valid",
-                "Ensure the video has captions/subtitles available",
+                "Ensure the video is publicly accessible",
+                "If the video is long, it may take a few minutes to download and transcribe",
                 "Try a different video"
             ]
         )
