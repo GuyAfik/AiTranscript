@@ -1,6 +1,6 @@
 # 🎙️ AiTranscript
 
-Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio from YouTube videos, uploaded files, or live recordings, with intelligent summarization using OpenAI GPT.
+Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio from YouTube videos, uploaded files, or live recordings, with intelligent summarization and message refinement using OpenAI GPT.
 
 ## ✨ Features
 
@@ -9,8 +9,12 @@ Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio 
   - Audio file upload (mp3, wav, m4a, ogg, flac)
   - Live voice recording
 
+- **Dual AI Processing Modes**:
+  - **Summarize Mode**: Get clear, concise summaries of transcripts with key points extraction
+  - **Refine Mode**: Transform voice recordings into well-structured, professional messages
+
 - **Local Transcription**: Uses Whisper model locally for privacy and cost-effectiveness
-- **AI-Powered Summaries**: Leverages OpenAI GPT-4/5 for intelligent text summarization
+- **AI-Powered Processing**: Leverages OpenAI GPT-4/3.5 for intelligent text processing
 - **User-Friendly Interface**: Built with Streamlit for an intuitive web experience
 
 ## 🏗️ Architecture
@@ -27,7 +31,7 @@ For detailed architecture information, see [`plans/architecture.md`](plans/archi
 
 - **Python**: 3.11 or higher
 - **FFmpeg**: Required for audio processing
-- **OpenAI API Key**: For AI summarization features
+- **OpenAI API Key**: For AI summarization and refinement features
 
 ### Installing FFmpeg
 
@@ -196,25 +200,50 @@ ruff check .
 
 ## 📝 Usage
 
-1. **YouTube Transcription**:
+### Processing Modes
+
+**Summarize Mode** - Get clear summaries of content:
+- Perfect for YouTube videos, podcasts, or long recordings
+- Extracts key points automatically
+- Choose from concise, detailed, or bullet-point styles
+
+**Refine Mode** - Transform your voice into professional messages:
+- Record what you want to say naturally
+- AI refines it into a clear, well-structured message
+- Choose tone: professional, friendly, formal, or casual
+- Optionally specify recipient context for better refinement
+
+### Step-by-Step Guide
+
+1. **Configure Settings** (in sidebar):
+   - Select AI provider (OpenAI or Gemini)
+   - Choose your model
+   - Enter your API key
+   - Select processing mode (Summarize or Refine)
+   - Configure mode-specific options
+
+2. **Choose Input Method**:
+
+   **YouTube Transcription**:
    - Navigate to the "YouTube" tab
    - Paste a YouTube URL
    - Click "Get Transcript"
-   - View transcript and AI summary
+   - View transcript and AI-processed result
 
-2. **File Upload**:
-   - Navigate to the "Upload" tab
+   **File Upload**:
+   - Navigate to the "Upload File" tab
    - Upload an audio file (mp3, wav, m4a, ogg, flac)
-   - Click "Transcribe"
-   - View transcript and AI summary
+   - Click "Transcribe File"
+   - View transcript and AI-processed result
 
-3. **Voice Recording**:
-   - Navigate to the "Record" tab
-   - Click "Start Recording"
-   - Speak into your microphone
-   - Click "Stop Recording"
+   **Voice Recording**:
+   - Navigate to the "Record Audio" tab
+   - Click the microphone button to start/stop recording
    - Click "Transcribe Recording"
-   - View transcript and AI summary
+   - View transcript and AI-processed result
+
+3. **Download Results**:
+   - Use the download buttons to save your transcript and AI-processed output
 
 ## 🔒 Privacy & Security
 
@@ -252,6 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [OpenAI Whisper](https://github.com/openai/whisper) for local transcription
 - [Streamlit](https://streamlit.io/) for the web framework
 - [OpenAI](https://openai.com/) for GPT API
+- [Google Gemini](https://ai.google.dev/) for Gemini API
 
 ## 📞 Support
 
@@ -259,4 +289,4 @@ For issues and questions, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ using Streamlit, Whisper, and OpenAI GPT**
+**Built with ❤️ using Streamlit, Whisper, OpenAI GPT, and Google Gemini**
