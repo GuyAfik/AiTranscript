@@ -112,11 +112,22 @@ class UIComponents:
             
             # AI Provider selection
             st.subheader("AI Provider")
+            
+            # Check if Ollama is available (for smart defaults)
+            try:
+                import ollama
+                ollama_available = True
+            except ImportError:
+                ollama_available = False
+            
+            # Default to OpenAI if Ollama is not available (e.g., on Streamlit Share)
+            default_provider_index = 0 if ollama_available else 1
+            
             ai_provider = st.selectbox(
                 "Provider",
                 options=["local", "openai"],
                 format_func=lambda x: "🏠 Local LLM (Ollama)" if x == "local" else "☁️ OpenAI (GPT)",
-                index=0,  # Default to local
+                index=default_provider_index,
                 help="Choose your AI provider. Local LLM runs on your machine (free, private). OpenAI requires API key."
             )
             
@@ -129,7 +140,16 @@ class UIComponents:
                     help="Select local model. Make sure it's installed: ollama pull <model>"
                 )
                 api_key = None  # No API key needed for local
-                st.info("ℹ️ Using local LLM - no API key required. Make sure Ollama is running.")
+                
+                # Check if Ollama is actually available
+                if not ollama_available:
+                    st.error(
+                        "❌ Ollama is not available on this platform. "
+                        "Please switch to OpenAI provider or deploy with Docker for local LLM support."
+                    )
+                    st.info("💡 See DEPLOYMENT.md for Docker deployment instructions with local LLM.")
+                else:
+                    st.info("ℹ️ Using local LLM - no API key required. Make sure Ollama is running.")
             else:  # openai
                 ai_model = st.selectbox(
                     "Model",
@@ -247,6 +267,8 @@ class UIComponents:
                 neutral_color="#3498db",
                 icon_name="microphone",
                 icon_size="3x",
+                pause_threshold=300.0,  # Very high threshold (5 minutes) to prevent auto-stop on silence
+                sample_rate=44100,
                 key=f"audio_recorder_{st.session_state.recorder_key}"
             )
             
