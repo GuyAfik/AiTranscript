@@ -336,18 +336,33 @@ docker-compose up -d
 - Environment variables and resource requirements
 - Troubleshooting guide
 
-### Alternative: Streamlit Cloud (OpenAI Only)
+### Streamlit Share Deployment (OpenAI Only)
 
-If you want to use Streamlit Cloud, you **must use OpenAI provider** (local LLM not supported):
+Deploy to Streamlit Share for quick, easy hosting. **Note**: You **must use OpenAI provider** (local LLM not supported on Streamlit Share).
 
+**Quick Deploy**:
 1. Push your code to GitHub
-2. Sign up for [Streamlit Cloud](https://streamlit.io/cloud)
-3. Connect your GitHub repository
-4. Add your `OPENAI_API_KEY` in the Secrets section
-5. Set `AI_PROVIDER=openai` in Secrets
-6. Deploy!
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Click "New app" and select your repository
+4. Add secrets (see below)
+5. Deploy!
 
-**Note**: This option requires an OpenAI API key and incurs API costs. For free, private AI processing, use Docker deployment with local LLM.
+**Required Secrets** (in TOML format):
+```toml
+OPENAI_API_KEY = "sk-your-api-key-here"
+AI_PROVIDER = "openai"
+OPENAI_MODEL = "gpt-3.5-turbo"  # or gpt-4-turbo-preview
+WHISPER_MODEL_SIZE = "base"
+```
+
+**Important**: See [`STREAMLIT_DEPLOYMENT.md`](STREAMLIT_DEPLOYMENT.md) for:
+- Complete step-by-step deployment guide
+- Why local LLM doesn't work on Streamlit Share
+- Cost considerations and optimization tips
+- Troubleshooting common issues
+- Security best practices
+
+**Note**: This option requires an OpenAI API key and incurs API costs (~$0.01-0.40 per transcript). For free, private AI processing, use Docker deployment with local LLM.
 
 ## 🤝 Contributing
 
