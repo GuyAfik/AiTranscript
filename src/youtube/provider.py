@@ -190,7 +190,7 @@ class YouTubeService:
     ) -> Dict[str, Any]:
         """
         Fetch transcript from YouTube video by downloading audio and using Whisper.
-        
+
         Note: The 'use_fallback' parameter is kept for compatibility but ignored,
         as this method now always uses the audio download + Whisper approach.
 
@@ -216,23 +216,23 @@ class YouTubeService:
 
         try:
             logger.info(f"Processing video ID: {video_id} via audio download")
-            
+
             if self.audio_service is None:
                 raise Exception("Audio service not available for transcription")
 
             # Use first language from list for Whisper, or None for auto-detect
             whisper_lang = languages[0] if languages and languages[0] != "en" else None
-            
+
             # Reuse the existing logic which does exactly what we want:
             # 1. Create temp dir
             # 2. Download audio
             # 3. Transcribe with Whisper
             # 4. Cleanup
             result = self._transcribe_with_whisper(video_id, whisper_lang)
-            
+
             # Update source to reflect this is now the primary method
             result["source"] = "whisper_audio"
-            
+
             return result
 
         except Exception as e:
@@ -243,10 +243,10 @@ class YouTubeService:
     def get_available_languages(self, video_id: str) -> List[str]:
         """
         Get list of available transcript languages for a video.
-        
+
         Note: Since we are now using Whisper for all transcriptions, we don't rely on
         YouTube's available captions. Whisper can detect the language automatically.
-        
+
         Args:
             video_id: YouTube video ID
 

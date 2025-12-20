@@ -13,6 +13,7 @@ from src.common.ai_processing import process_with_ai
 
 logger = logging.getLogger(__name__)
 
+
 def render_upload_view(settings: Dict[str, Any]) -> None:
     """
     Render the file upload tab.
@@ -33,6 +34,7 @@ def render_upload_view(settings: Dict[str, Any]) -> None:
             st.session_state.refined_message = None
 
             process_audio_file(uploaded_file, settings)
+
 
 def process_audio_file(uploaded_file, settings: Dict[str, Any]) -> None:
     """

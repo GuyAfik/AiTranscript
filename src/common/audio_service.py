@@ -29,7 +29,7 @@ from typing import Union, Optional, Dict, Any
 from pathlib import Path
 import whisper
 from src.utils.validators import validate_audio_file
-from src.utils.file_handler import cleanup_temp_files, temp_file_context, get_audio_duration
+from src.utils.file_handler import temp_file_context, get_audio_duration
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +192,9 @@ class AudioTranscriptionService:
             logger.info("Transcribing audio from bytes data")
 
             # Use context manager for temporary file
-            with temp_file_context(audio_bytes, filename=f"audio{file_extension}") as temp_file_path:
+            with temp_file_context(
+                audio_bytes, filename=f"audio{file_extension}"
+            ) as temp_file_path:
                 # Transcribe the temporary file
                 result = self.transcribe_file(temp_file_path, language)
                 return result

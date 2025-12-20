@@ -11,7 +11,6 @@ Usage:
 
 import streamlit as st
 import logging
-from typing import Dict, Any
 
 # Import services
 # Services are now used within feature modules
@@ -22,7 +21,6 @@ from src.upload.view import render_upload_view
 from src.recording.view import render_recording_view
 
 # Import utilities
-from src.utils.config import get_config
 from src.utils.file_handler import cleanup_old_temp_files
 from src.ui.components import UIComponents
 
@@ -52,8 +50,6 @@ def initialize_session_state() -> None:
         st.session_state.refined_message = None
     if "processing" not in st.session_state:
         st.session_state.processing = False
-
-
 
 
 def main() -> None:

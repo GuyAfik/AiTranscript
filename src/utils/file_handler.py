@@ -51,7 +51,9 @@ def temp_file_context(uploaded_file, filename: Optional[str] = None) -> Generato
 
     # Use NamedTemporaryFile as a context manager
     # delete=True ensures the file is deleted when the context exits
-    with tempfile.NamedTemporaryFile(delete=True, suffix=suffix, prefix="aitranscript_") as temp_file:
+    with tempfile.NamedTemporaryFile(
+        delete=True, suffix=suffix, prefix="aitranscript_"
+    ) as temp_file:
         # Write content
         if hasattr(uploaded_file, "read"):
             # Streamlit UploadedFile object
@@ -61,10 +63,10 @@ def temp_file_context(uploaded_file, filename: Optional[str] = None) -> Generato
             temp_file.write(uploaded_file)
         else:
             raise ValueError(f"Unsupported file type: {type(uploaded_file)}")
-        
+
         # Flush to ensure data is written to disk
         temp_file.flush()
-        
+
         logger.info(f"Saved uploaded file to temporary context: {temp_file.name}")
         yield temp_file.name
 
@@ -227,5 +229,3 @@ def convert_audio_to_wav(input_path: str, output_path: Optional[str] = None) -> 
     except Exception as e:
         logger.error(f"Error converting audio to WAV: {e}")
         raise Exception(f"Failed to convert audio: {str(e)}")
-
-

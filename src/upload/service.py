@@ -11,6 +11,7 @@ from src.utils.file_handler import temp_file_context
 
 logger = logging.getLogger(__name__)
 
+
 def transcribe_uploaded_file(uploaded_file, settings: Dict[str, Any]) -> Dict[str, Any]:
     """
     Process uploaded audio file and transcribe.
@@ -36,7 +37,7 @@ def transcribe_uploaded_file(uploaded_file, settings: Dict[str, Any]) -> Dict[st
 
             # Transcribe audio
             result = audio_service.transcribe_file(temp_file_path, language=settings["language"])
-            
+
             return result
 
     except Exception as e:

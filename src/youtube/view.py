@@ -12,6 +12,7 @@ from src.youtube.service import get_youtube_transcript
 
 logger = logging.getLogger(__name__)
 
+
 def render_youtube_view(settings: Dict[str, Any]) -> None:
     """
     Render the YouTube transcription tab.
@@ -32,6 +33,7 @@ def render_youtube_view(settings: Dict[str, Any]) -> None:
             st.session_state.refined_message = None
 
             process_youtube_url(youtube_url, settings)
+
 
 def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
     """
@@ -65,12 +67,12 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
                 logger.info(f"YouTube transcript extracted: {len(result['text'])} characters")
 
         # Process with AI if using local LLM or if API key is available for OpenAI
-        # Note: This dependency on process_with_ai needs to be handled. 
+        # Note: This dependency on process_with_ai needs to be handled.
         # Ideally, we should import a shared AI processing function or pass it as a callback.
         # For now, we will assume the main app handles the AI processing trigger based on state,
         # OR we can import a shared utility. Let's assume we'll create a shared utility.
         from src.common.ai_processing import process_with_ai
-        
+
         if settings.get("ai_provider") == "local" or settings.get("api_key"):
             process_with_ai(st.session_state.transcript_result, settings)
         else:

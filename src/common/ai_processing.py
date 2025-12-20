@@ -13,6 +13,7 @@ from src.ui.components import UIComponents
 
 logger = logging.getLogger(__name__)
 
+
 def process_with_ai(transcript: str, settings: Dict[str, Any]) -> None:
     """
     Process transcript with AI for summarization or message refinement.

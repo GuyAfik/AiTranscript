@@ -33,8 +33,6 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
     #   tqdm
-defusedxml==0.7.1
-    # via youtube-transcript-api
 distro==1.9.0
     # via openai
 entrypoints==0.4
@@ -176,7 +174,6 @@ requests==2.32.5
     # via
     #   streamlit
     #   tiktoken
-    #   youtube-transcript-api
 rpds-py==0.30.0
     # via
     #   jsonschema
@@ -235,7 +232,5 @@ validators==0.35.0
     # via aitranscript
 watchdog==6.0.0 ; sys_platform != 'darwin'
     # via streamlit
-youtube-transcript-api==1.2.3
-    # via aitranscript
 yt-dlp==2025.12.8
     # via aitranscript

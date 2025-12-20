@@ -13,6 +13,7 @@ from src.common.ai_processing import process_with_ai
 
 logger = logging.getLogger(__name__)
 
+
 def render_recording_view(settings: Dict[str, Any]) -> None:
     """
     Render the voice recording tab.
@@ -32,6 +33,7 @@ def render_recording_view(settings: Dict[str, Any]) -> None:
         st.session_state.refined_message = None
 
         process_audio_recording(audio_bytes, settings)
+
 
 def process_audio_recording(audio_bytes: bytes, settings: Dict[str, Any]) -> None:
     """
