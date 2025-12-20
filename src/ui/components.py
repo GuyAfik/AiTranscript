@@ -110,21 +110,48 @@ class UIComponents:
             
             st.markdown("---")
             
-            # API key input
-            st.subheader("OpenAI API")
-            api_key = st.text_input(
-                "API Key",
-                type="password",
-                help="Enter your OpenAI API key. Get one at platform.openai.com"
+            # AI Provider selection
+            st.subheader("AI Provider")
+            ai_provider = st.selectbox(
+                "Provider",
+                options=["local", "openai"],
+                format_func=lambda x: "🏠 Local LLM (Ollama)" if x == "local" else "☁️ OpenAI (GPT)",
+                index=0,  # Default to local
+                help="Choose your AI provider. Local LLM runs on your machine (free, private). OpenAI requires API key."
             )
             
-            if not api_key:
-                st.warning("⚠️ OpenAI API key required for AI features")
+            # Model selection based on provider
+            if ai_provider == "local":
+                ai_model = st.selectbox(
+                    "Model",
+                    options=["llama2", "llama3", "mistral", "phi", "codellama"],
+                    index=0,
+                    help="Select local model. Make sure it's installed: ollama pull <model>"
+                )
+                api_key = None  # No API key needed for local
+                st.info("ℹ️ Using local LLM - no API key required. Make sure Ollama is running.")
+            else:  # openai
+                ai_model = st.selectbox(
+                    "Model",
+                    options=["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"],
+                    index=0,
+                    help="Select OpenAI model. GPT-4 is more capable but slower and more expensive."
+                )
+                api_key = st.text_input(
+                    "OpenAI API Key",
+                    type="password",
+                    help="Enter your OpenAI API key. Get one at platform.openai.com"
+                )
+                
+                if not api_key:
+                    st.warning("⚠️ OpenAI API key required for OpenAI provider")
             
             settings = {
                 "model_size": model_size,
                 "language": None if language == "auto-detect" else language,
                 "processing_mode": processing_mode,
+                "ai_provider": ai_provider,
+                "ai_model": ai_model,
                 "api_key": api_key
             }
             

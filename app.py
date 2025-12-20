@@ -95,11 +95,11 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
                 st.success(f"✅ Transcript extracted successfully! ({len(result['text'])} characters)")
                 logger.info(f"YouTube transcript extracted: {len(result['text'])} characters")
         
-        # Process with AI if API key is available
-        if settings['api_key']:
+        # Process with AI if using local LLM or if API key is available for OpenAI
+        if settings.get('ai_provider') == 'local' or settings.get('api_key'):
             process_with_ai(st.session_state.transcript_result, settings)
         else:
-            st.warning("⚠️ OpenAI API key not provided. Skipping AI summarization.")
+            st.warning("⚠️ API key not provided for OpenAI. Skipping AI processing.")
     
     except Exception as e:
         logger.error(f"Error processing YouTube URL: {e}")
@@ -155,11 +155,11 @@ def process_audio_file(uploaded_file, settings: Dict[str, Any]) -> None:
             )
             logger.info(f"Audio transcribed: {len(result['text'])} characters")
         
-        # Process with AI if API key is available
-        if settings['api_key']:
+        # Process with AI if using local LLM or if API key is available for OpenAI
+        if settings.get('ai_provider') == 'local' or settings.get('api_key'):
             process_with_ai(st.session_state.transcript_result, settings)
         else:
-            st.warning("⚠️ OpenAI API key not provided. Skipping AI summarization.")
+            st.warning("⚠️ API key not provided for OpenAI. Skipping AI processing.")
     
     except Exception as e:
         logger.error(f"Error processing audio file: {e}")
@@ -216,11 +216,11 @@ def process_audio_recording(audio_bytes: bytes, settings: Dict[str, Any]) -> Non
             )
             logger.info(f"Recording transcribed: {len(result['text'])} characters")
         
-        # Process with AI if API key is available
-        if settings['api_key']:
+        # Process with AI if using local LLM or if API key is available for OpenAI
+        if settings.get('ai_provider') == 'local' or settings.get('api_key'):
             process_with_ai(st.session_state.transcript_result, settings)
         else:
-            st.warning("⚠️ OpenAI API key not provided. Skipping AI summarization.")
+            st.warning("⚠️ API key not provided for OpenAI. Skipping AI processing.")
     
     except Exception as e:
         logger.error(f"Error processing audio recording: {e}")
@@ -245,10 +245,11 @@ def process_with_ai(transcript: str, settings: Dict[str, Any]) -> None:
         settings: User settings dictionary
     """
     try:
-        # Initialize AI service
+        # Initialize AI service with selected provider and model
         ai_service = AICleanupService(
-            api_key=settings['api_key'],
-            model=get_config().openai_model
+            api_key=settings.get('api_key'),
+            model=settings.get('ai_model', 'llama2' if settings.get('ai_provider') == 'local' else get_config().openai_model),
+            provider=settings.get('ai_provider', 'local')
         )
         
         processing_mode = settings.get('processing_mode', 'summarize')

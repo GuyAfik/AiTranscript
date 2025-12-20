@@ -1,6 +1,6 @@
 # 🎙️ AiTranscript
 
-Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio from YouTube videos, uploaded files, or live recordings, with intelligent summarization and message refinement using OpenAI GPT.
+Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio from YouTube videos, uploaded files, or live recordings, with intelligent summarization and message refinement using local LLM or OpenAI GPT.
 
 ## ✨ Features
 
@@ -13,8 +13,11 @@ Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio 
   - **Summarize Mode**: Get clear, concise summaries of transcripts with key points extraction
   - **Refine Mode**: Transform voice recordings into well-structured, professional messages
 
+- **Flexible AI Providers**:
+  - **Local LLM (Default)**: Run AI models on your machine via Ollama - free, private, no API key needed
+  - **OpenAI GPT**: Cloud-based option for GPT-4/3.5 models
+
 - **Local Transcription**: Uses Whisper model locally for privacy and cost-effectiveness
-- **AI-Powered Processing**: Leverages OpenAI GPT-4/3.5 for intelligent text processing
 - **User-Friendly Interface**: Built with Streamlit for an intuitive web experience
 
 ## 🏗️ Architecture
@@ -31,7 +34,8 @@ For detailed architecture information, see [`plans/architecture.md`](plans/archi
 
 - **Python**: 3.11 or higher
 - **FFmpeg**: Required for audio processing
-- **OpenAI API Key**: For AI summarization and refinement features
+- **Ollama**: For local LLM (recommended, free)
+- **OpenAI API Key**: Optional, only if using OpenAI provider
 
 ### Installing FFmpeg
 
@@ -48,6 +52,27 @@ sudo apt-get install ffmpeg
 
 **Windows**:
 Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
+
+### Installing Ollama (for Local LLM)
+
+**macOS/Linux**:
+```bash
+curl https://ollama.ai/install.sh | sh
+```
+
+**Windows**:
+Download from [ollama.ai](https://ollama.ai/download)
+
+**Pull a model**:
+```bash
+# Start Ollama
+ollama serve
+
+# Pull a model (in another terminal)
+ollama pull llama2
+# or
+ollama pull mistral
+```
 
 ## 🚀 Quick Start
 
@@ -90,14 +115,15 @@ uv pip install -e .
 # Copy the example environment file
 cp .env.example .env
 
-# Edit .env and add your OpenAI API key
-# Get your API key from: https://platform.openai.com/api-keys
+# Edit .env if needed (optional - defaults work out of the box)
 ```
 
-Required environment variables:
-- `OPENAI_API_KEY`: Your OpenAI API key (required)
-- `WHISPER_MODEL_SIZE`: Whisper model size (default: base)
+Environment variables (all optional):
+- `AI_PROVIDER`: Choose 'local' (default) or 'openai'
+- `LOCAL_MODEL`: Local model to use (default: llama2)
+- `OPENAI_API_KEY`: Your OpenAI API key (only if using OpenAI)
 - `OPENAI_MODEL`: OpenAI model to use (default: gpt-4-turbo-preview)
+- `WHISPER_MODEL_SIZE`: Whisper model size (default: base)
 
 ### 5. Run the Application
 
@@ -151,16 +177,49 @@ Set in `.env`:
 WHISPER_MODEL_SIZE=base
 ```
 
-### OpenAI Models
+### AI Provider Models
+
+#### Local LLM Models (via Ollama) - Default & Recommended
+
+| Model      | Size  | RAM   | Speed    | Quality   | Use Case           |
+|------------|-------|-------|----------|-----------|-------------------|
+| llama2     | 3.8GB | ~8GB  | Fast     | Good      | Default, balanced |
+| llama3     | 4.7GB | ~8GB  | Fast     | Excellent | Best quality      |
+| mistral    | 4.1GB | ~8GB  | Fast     | Very Good | Great alternative |
+| phi        | 1.6GB | ~4GB  | Fastest  | Good      | Low resource      |
+| codellama  | 3.8GB | ~8GB  | Fast     | Good      | Code-focused      |
+
+**Advantages**:
+- ✅ Free - no API costs
+- ✅ Private - data stays on your machine
+- ✅ No API key needed
+- ✅ Works offline
+
+**Setup**:
+```bash
+# Install Ollama
+curl https://ollama.ai/install.sh | sh
+
+# Pull a model
+ollama pull llama2
+
+# Run the app (Ollama will start automatically)
+streamlit run app.py
+```
+
+#### OpenAI Models (Optional)
 
 | Model            | Cost/1K tokens | Speed  | Quality   | Use Case         |
 |------------------|----------------|--------|-----------|------------------|
 | gpt-3.5-turbo    | $0.0015        | Fast   | Good      | Cost-effective   |
-| gpt-4-turbo      | $0.01          | Medium | Excellent | Recommended      |
+| gpt-4-turbo      | $0.01          | Medium | Excellent | High quality     |
 | gpt-4            | $0.03          | Slow   | Best      | Premium quality  |
 
-Set in `.env`:
+**Setup**:
 ```bash
+# Set in .env
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-api-key-here
 OPENAI_MODEL=gpt-4-turbo-preview
 ```
 
@@ -279,6 +338,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [OpenAI Whisper](https://github.com/openai/whisper) for local transcription
+- [Ollama](https://ollama.ai/) for local LLM support
 - [Streamlit](https://streamlit.io/) for the web framework
 - [OpenAI](https://openai.com/) for GPT API
 - [Google Gemini](https://ai.google.dev/) for Gemini API
