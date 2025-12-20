@@ -164,18 +164,29 @@ class UIComponents:
         try:
             from audio_recorder_streamlit import audio_recorder
             
-            st.info("🎙️ Click the microphone button to start/stop recording")
+            # Initialize recorder key in session state
+            if 'recorder_key' not in st.session_state:
+                st.session_state.recorder_key = 0
+            
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.info("🎙️ Click the microphone button to start/stop recording")
+            with col2:
+                if st.button("🗑️ Clear", help="Clear the current recording"):
+                    st.session_state.recorder_key += 1
+                    st.rerun()
             
             audio_bytes = audio_recorder(
                 text="",
                 recording_color="#e74c3c",
                 neutral_color="#3498db",
                 icon_name="microphone",
-                icon_size="3x"
+                icon_size="3x",
+                key=f"audio_recorder_{st.session_state.recorder_key}"
             )
             
+            # Only show audio player when we have audio
             if audio_bytes:
-                st.success("✅ Recording captured!")
                 st.audio(audio_bytes, format="audio/wav")
                 return audio_bytes
             
