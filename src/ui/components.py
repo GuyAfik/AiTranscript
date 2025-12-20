@@ -65,19 +65,48 @@ class UIComponents:
             st.markdown("---")
             
             # AI settings
-            st.subheader("AI Summarization")
-            summary_style = st.selectbox(
-                "Summary Style",
-                options=["concise", "detailed", "bullet"],
-                index=0,
-                help="Choose how the AI should summarize the transcript."
+            st.subheader("AI Processing")
+            
+            # Processing mode selection
+            processing_mode = st.radio(
+                "Processing Mode",
+                options=["summarize", "refine"],
+                format_func=lambda x: "📊 Summarize Content" if x == "summarize" else "✨ Refine Message",
+                help="Choose how to process the transcript:\n"
+                     "- Summarize: Get a clear summary of the content\n"
+                     "- Refine: Improve your message for better communication"
             )
             
-            generate_key_points = st.checkbox(
-                "Generate Key Points",
-                value=True,
-                help="Extract main takeaways from the transcript."
-            )
+            # Mode-specific settings
+            if processing_mode == "summarize":
+                summary_style = st.selectbox(
+                    "Summary Style",
+                    options=["concise", "detailed", "bullet"],
+                    index=0,
+                    help="Choose how the AI should summarize the transcript."
+                )
+                
+                generate_key_points = st.checkbox(
+                    "Generate Key Points",
+                    value=True,
+                    help="Extract main takeaways from the transcript."
+                )
+            else:  # refine mode
+                summary_style = None
+                generate_key_points = False
+                
+                message_tone = st.selectbox(
+                    "Message Tone",
+                    options=["professional", "friendly", "formal", "casual"],
+                    index=0,
+                    help="Choose the tone for your refined message."
+                )
+                
+                recipient_context = st.text_input(
+                    "Recipient (optional)",
+                    placeholder="e.g., my boss, a client, a friend",
+                    help="Provide context about who will receive this message for better refinement."
+                )
             
             st.markdown("---")
             
@@ -92,13 +121,22 @@ class UIComponents:
             if not api_key:
                 st.warning("⚠️ OpenAI API key required for AI features")
             
-            return {
+            settings = {
                 "model_size": model_size,
                 "language": None if language == "auto-detect" else language,
-                "summary_style": summary_style,
-                "generate_key_points": generate_key_points,
+                "processing_mode": processing_mode,
                 "api_key": api_key
             }
+            
+            # Add mode-specific settings
+            if processing_mode == "summarize":
+                settings["summary_style"] = summary_style
+                settings["generate_key_points"] = generate_key_points
+            else:  # refine mode
+                settings["message_tone"] = message_tone
+                settings["recipient_context"] = recipient_context if recipient_context else None
+            
+            return settings
     
     @staticmethod
     def render_youtube_tab() -> Optional[str]:
@@ -235,6 +273,42 @@ class UIComponents:
             st.markdown("### 🔑 Key Points")
             for i, point in enumerate(key_points, 1):
                 st.markdown(f"{i}. {point}")
+    
+    @staticmethod
+    def render_refined_message_result(original: str, refined: str) -> None:
+        """
+        Render the refined message result with before/after comparison.
+        
+        Args:
+            original: Original transcript text
+            refined: Refined message text
+        """
+        st.markdown("### ✨ Refined Message")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📝 Original")
+            with st.container():
+                st.markdown(
+                    f'<div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; '
+                    f'border-left: 4px solid #ff6b6b;">{original}</div>',
+                    unsafe_allow_html=True
+                )
+        
+        with col2:
+            st.markdown("#### ✅ Refined")
+            with st.container():
+                st.markdown(
+                    f'<div style="background-color: #f0f2f6; padding: 15px; border-radius: 5px; '
+                    f'border-left: 4px solid #51cf66;">{refined}</div>',
+                    unsafe_allow_html=True
+                )
+        
+        # Copy button for refined message
+        st.markdown("---")
+        st.markdown("**📋 Ready to send:**")
+        st.code(refined, language=None)
     
     @staticmethod
     def render_download_buttons(transcript: str, summary: Optional[str] = None) -> None:

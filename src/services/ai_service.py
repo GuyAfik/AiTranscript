@@ -239,6 +239,67 @@ Each point should be concise but complete. Aim for 3-7 key points."""
         logger.info(f"Extracted {len(key_points)} key points")
         return key_points
     
+    def refine_message(
+        self,
+        text: str,
+        tone: str = "professional",
+        recipient_context: Optional[str] = None
+    ) -> str:
+        """
+        Refine and rephrase a voice message to communicate better with others.
+        
+        This method takes what you said via voice recording and transforms it into
+        a well-structured, clear message suitable for the intended recipient.
+        
+        Args:
+            text: Original voice transcript to refine
+            tone: Desired tone ('professional', 'friendly', 'formal', 'casual')
+            recipient_context: Optional context about the recipient (e.g., 'my boss', 'a client', 'a friend')
+            
+        Returns:
+            Refined and rephrased message
+            
+        Raises:
+            Exception: If API call fails
+        """
+        if not text or not text.strip():
+            raise ValueError("Text to refine cannot be empty")
+        
+        logger.info(f"Refining message with {tone} tone")
+        
+        # Build tone-specific instructions
+        tone_instructions = {
+            'professional': "professional, clear, and concise while maintaining warmth",
+            'friendly': "friendly, approachable, and warm while staying clear",
+            'formal': "formal, respectful, and polished",
+            'casual': "casual, relaxed, and conversational"
+        }
+        
+        tone_desc = tone_instructions.get(tone, tone_instructions['professional'])
+        
+        system_prompt = f"""You are an expert communication assistant that helps people express themselves better.
+Your task is to take what someone said (often from a voice recording) and rephrase it to be {tone_desc}.
+
+Guidelines:
+- Preserve the original intent and key points
+- Remove filler words, repetitions, and unclear phrases
+- Improve grammar and sentence structure
+- Make the message clear, coherent, and well-organized
+- Maintain the speaker's authentic voice while enhancing clarity
+- Ensure the message is appropriate for the intended recipient"""
+        
+        user_message = f"Please refine and rephrase the following message to make it better for communication:\n\n{text}"
+        
+        if recipient_context:
+            user_message += f"\n\nContext: This message is for {recipient_context}."
+        
+        return self._call_api(
+            system_prompt=system_prompt,
+            user_message=user_message,
+            max_tokens=2000,
+            temperature=0.7
+        )
+    
     def custom_prompt(self, text: str, prompt: str) -> str:
         """
         Process text with a custom prompt.

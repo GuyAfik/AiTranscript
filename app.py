@@ -51,6 +51,8 @@ def initialize_session_state() -> None:
         st.session_state.summary_result = None
     if 'key_points' not in st.session_state:
         st.session_state.key_points = None
+    if 'refined_message' not in st.session_state:
+        st.session_state.refined_message = None
     if 'processing' not in st.session_state:
         st.session_state.processing = False
 
@@ -236,35 +238,51 @@ def process_audio_recording(audio_bytes: bytes, settings: Dict[str, Any]) -> Non
 
 def process_with_ai(transcript: str, settings: Dict[str, Any]) -> None:
     """
-    Process transcript with AI for summarization and key points.
+    Process transcript with AI for summarization or message refinement.
     
     Args:
         transcript: Transcript text
         settings: User settings dictionary
     """
     try:
-        with st.spinner("🤖 Generating AI summary..."):
-            # Initialize AI service
-            ai_service = AICleanupService(
-                api_key=settings['api_key'],
-                model=get_config().openai_model
-            )
-            
-            # Generate summary
-            summary = ai_service.summarize_text(
-                transcript,
-                style=settings['summary_style']
-            )
-            st.session_state.summary_result = summary
-            
-            # Generate key points if requested
-            if settings['generate_key_points']:
-                with st.spinner("🔑 Extracting key points..."):
-                    key_points = ai_service.generate_key_points(transcript)
-                    st.session_state.key_points = key_points
-            
-            st.success("✅ AI processing complete!")
-            logger.info("AI summarization completed")
+        # Initialize AI service
+        ai_service = AICleanupService(
+            api_key=settings['api_key'],
+            model=get_config().openai_model
+        )
+        
+        processing_mode = settings.get('processing_mode', 'summarize')
+        
+        if processing_mode == 'summarize':
+            # Summarization mode
+            with st.spinner("🤖 Generating AI summary..."):
+                summary = ai_service.summarize_text(
+                    transcript,
+                    style=settings['summary_style']
+                )
+                st.session_state.summary_result = summary
+                
+                # Generate key points if requested
+                if settings['generate_key_points']:
+                    with st.spinner("🔑 Extracting key points..."):
+                        key_points = ai_service.generate_key_points(transcript)
+                        st.session_state.key_points = key_points
+                
+                st.success("✅ AI summarization complete!")
+                logger.info("AI summarization completed")
+        
+        else:  # refine mode
+            # Message refinement mode
+            with st.spinner("✨ Refining your message..."):
+                refined = ai_service.refine_message(
+                    transcript,
+                    tone=settings.get('message_tone', 'professional'),
+                    recipient_context=settings.get('recipient_context')
+                )
+                st.session_state.refined_message = refined
+                
+                st.success("✅ Message refined successfully!")
+                logger.info("Message refinement completed")
     
     except Exception as e:
         logger.error(f"Error in AI processing: {e}")
@@ -319,6 +337,7 @@ def main() -> None:
                 st.session_state.transcript_result = None
                 st.session_state.summary_result = None
                 st.session_state.key_points = None
+                st.session_state.refined_message = None
                 
                 process_youtube_url(youtube_url, settings)
     
@@ -334,6 +353,7 @@ def main() -> None:
                 st.session_state.transcript_result = None
                 st.session_state.summary_result = None
                 st.session_state.key_points = None
+                st.session_state.refined_message = None
                 
                 process_audio_file(uploaded_file, settings)
     
@@ -346,6 +366,7 @@ def main() -> None:
             st.session_state.transcript_result = None
             st.session_state.summary_result = None
             st.session_state.key_points = None
+            st.session_state.refined_message = None
             
             process_audio_recording(audio_bytes, settings)
     
@@ -357,7 +378,7 @@ def main() -> None:
         # Display transcript
         UIComponents.render_transcript_result(st.session_state.transcript_result)
         
-        # Display AI summary and key points if available
+        # Display AI results based on processing mode
         if st.session_state.summary_result:
             st.markdown("---")
             UIComponents.render_summary_result(
@@ -365,10 +386,18 @@ def main() -> None:
                 st.session_state.key_points
             )
         
+        if st.session_state.refined_message:
+            st.markdown("---")
+            UIComponents.render_refined_message_result(
+                st.session_state.transcript_result,
+                st.session_state.refined_message
+            )
+        
         # Download buttons
+        download_content = st.session_state.summary_result or st.session_state.refined_message
         UIComponents.render_download_buttons(
             st.session_state.transcript_result,
-            st.session_state.summary_result
+            download_content
         )
     
     # Footer
