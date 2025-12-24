@@ -179,34 +179,65 @@ class UIComponents:
                 help="End time in MM:SS or seconds",
             )
 
+        video_verified = False
+        
         if url:
             st.info(f"📎 URL: {url}")
             
-            # Try to fetch video title preview
-            try:
-                from src.youtube.provider import YouTubeService
-                
-                # We need a lightweight way to get title without downloading
-                # Using a temporary service instance just for title extraction
-                service = YouTubeService()
-                video_id = service.extract_video_id(url)
-                
-                # Use yt-dlp to get metadata only
-                import yt_dlp
-                
-                with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
-                    info = ydl.extract_info(url, download=False)
-                    title = info.get("title")
-                    if title:
-                        st.markdown(f"**📺 Video:** {title}")
-            except Exception:
-                # Fail silently for preview to avoid disrupting UI
-                pass
+            # Initialize session state for verified video if not exists
+            if "verified_video_url" not in st.session_state:
+                st.session_state.verified_video_url = None
+            
+            # If URL changed, reset verification
+            if st.session_state.verified_video_url != url:
+                st.session_state.verified_video_url = None
+                video_verified = False
+            else:
+                video_verified = True
+
+            # Button to fetch metadata
+            if st.button("ℹ️ Get Video Info", key="get_info_btn"):
+                try:
+                    with st.spinner("Fetching video info..."):
+                        from src.youtube.provider import YouTubeService
+                        
+                        # We need a lightweight way to get title without downloading
+                        # Using a temporary service instance just for title extraction
+                        service = YouTubeService()
+                        video_id = service.extract_video_id(url)
+                        
+                        # Use yt-dlp to get metadata only
+                        import yt_dlp
+                        
+                        with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                            info = ydl.extract_info(url, download=False)
+                            title = info.get("title")
+                            duration = info.get("duration")
+                            
+                            if title:
+                                st.markdown(f"**📺 Video:** {title}")
+                                # Mark as verified
+                                st.session_state.verified_video_url = url
+                                video_verified = True
+                                
+                            if duration:
+                                minutes, seconds = divmod(duration, 60)
+                                st.markdown(f"**⏱️ Duration:** {int(minutes)}:{int(seconds):02d}")
+                                
+                except Exception as e:
+                    st.warning(f"Could not fetch video info: {str(e)}")
+                    st.session_state.verified_video_url = None
+                    video_verified = False
+            
+            # If already verified (from previous click), show the info again is tricky without re-fetching
+            # But we can just rely on the state to enable the button in the parent view.
+            # Ideally we would persist the title in session state too to avoid re-fetching or disappearing title.
 
         return {
             "url": url if url else None,
             "start_time": start_time,
             "end_time": end_time,
+            "video_verified": video_verified
         }
 
     @staticmethod

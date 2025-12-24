@@ -22,8 +22,58 @@ def render_youtube_view(settings: Dict[str, Any]) -> None:
     """
     youtube_data = UIComponents.render_youtube_tab()
     youtube_url = youtube_data.get("url")
+    
+    # Check if we have video info (title) which means user has verified the video
+    # We can check this by looking for the video info in session state or just rely on the user flow
+    # For now, let's just disable the button if no URL, but we can't easily check if "Get Info" was clicked
+    # without adding more state.
+    # However, the user asked to disable "Get Transcript" BEFORE fetching video info.
+    # This implies a flow: Enter URL -> Click "Get Info" -> "Get Transcript" becomes enabled.
+    
+    # Let's check if we have a valid video ID extracted and verified
+    video_verified = False
+    if youtube_url:
+        # We can check if the "Get Video Info" button was clicked in the component
+        # But components don't return that state directly in the dict.
+        # We need to modify UIComponents to return whether info was fetched or use session state.
+        pass
 
-    if st.button("🚀 Get Transcript", key="youtube_btn", disabled=st.session_state.processing):
+    # Since we can't easily change the return type of render_youtube_tab without breaking other things,
+    # let's rely on the fact that the user *should* click "Get Info".
+    # But to strictly enforce "disable before fetch", we need state.
+    
+    if "youtube_video_verified" not in st.session_state:
+        st.session_state.youtube_video_verified = False
+        
+    # If URL changes, reset verification
+    if "last_youtube_url" not in st.session_state:
+        st.session_state.last_youtube_url = ""
+        
+    if youtube_url != st.session_state.last_youtube_url:
+        st.session_state.youtube_video_verified = False
+        st.session_state.last_youtube_url = youtube_url
+
+    # The button in UIComponents needs to update this state.
+    # Since we can't easily modify the component's internal logic from here without passing a callback,
+    # we might need to move the button logic here or update the component to return more info.
+    # Let's update the component to handle the state update.
+    
+    # For now, let's assume the component handles the "Get Info" click and we just check the state here.
+    # But wait, the component is static.
+    
+    # Let's enable the button only if we have a URL. The user's request "disable... before we fetch video info"
+    # suggests a strict workflow.
+    
+    # Let's use the `youtube_data` to see if we can pass a signal.
+    # Actually, the cleanest way is to move the "Get Transcript" button inside the component
+    # or have the component return the verification status.
+    
+    # Let's look at how `render_youtube_tab` is implemented. It returns a dict.
+    # We can add `video_verified` to that dict.
+    
+    is_verified = youtube_data.get("video_verified", False)
+
+    if st.button("Get Transcript", key="youtube_btn", disabled=st.session_state.processing or not is_verified):
         if not youtube_url:
             st.error("❌ Please enter a YouTube URL")
         else:

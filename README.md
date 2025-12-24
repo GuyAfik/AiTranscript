@@ -28,8 +28,6 @@ AiTranscript follows a service-oriented architecture with clear separation of co
 - **Utils Layer**: Input validation, file handling
 - **UI Layer**: Reusable Streamlit components
 
-For detailed architecture information, see [`plans/architecture.md`](plans/architecture.md).
-
 ## 📋 Prerequisites
 
 - **Python**: 3.11 or higher
