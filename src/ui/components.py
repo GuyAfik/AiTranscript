@@ -112,60 +112,18 @@ class UIComponents:
 
             st.markdown("---")
 
-            # AI Provider selection
-            st.subheader("AI Provider")
+            # AI Provider Configuration
+            from src.utils.config import get_config
 
-            # Check if Ollama is available (for smart defaults)
-            try:
-                import ollama
+            config = get_config()
+            ai_provider = config.ai_provider
 
-                ollama_available = True
-            except ImportError:
-                ollama_available = False
-
-            # Default to OpenAI if Ollama is not available (e.g., on Streamlit Share)
-            default_provider_index = 0 if ollama_available else 1
-
-            ai_provider = st.selectbox(
-                "Provider",
-                options=["local", "openai"],
-                format_func=lambda x: "🏠 Local LLM (Ollama)" if x == "local" else "☁️ OpenAI (GPT)",
-                index=default_provider_index,
-                help="Choose your AI provider. Local LLM runs on your machine (free, private). OpenAI requires API key.",
-            )
-
-            # Model selection based on provider
             if ai_provider == "local":
-                # Hardcoded to mistral - no user selection
-                ai_model = "mistral"
-                api_key = None  # No API key needed for local
-
-                # Check if Ollama is actually available
-                if not ollama_available:
-                    st.error(
-                        "❌ Ollama is not available on this platform. "
-                        "Please switch to OpenAI provider or deploy with Docker for local LLM support."
-                    )
-                    st.info(
-                        "💡 See DEPLOYMENT.md for Docker deployment instructions with local LLM."
-                    )
-                else:
-                    st.info("ℹ️ Using local LLM - no API key required. Make sure Ollama is running.")
-            else:  # openai
-                ai_model = st.selectbox(
-                    "Model",
-                    options=["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"],
-                    index=0,
-                    help="Select OpenAI model. GPT-4 is more capable but slower and more expensive.",
-                )
-                api_key = st.text_input(
-                    "OpenAI API Key",
-                    type="password",
-                    help="Enter your OpenAI API key. Get one at platform.openai.com",
-                )
-
-                if not api_key:
-                    st.warning("⚠️ OpenAI API key required for OpenAI provider")
+                ai_model = config.local_model
+                api_key = None
+            else:
+                ai_model = config.openai_model
+                api_key = config.openai_api_key
 
             settings = {
                 "model_size": model_size,

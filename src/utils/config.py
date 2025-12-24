@@ -54,6 +54,10 @@ class Config:
         self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
         self.openai_max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
 
+        # AI Provider Configuration
+        self.ai_provider = os.getenv("AI_PROVIDER", "local")
+        self.local_model = os.getenv("LOCAL_MODEL", "mistral")
+
         # Whisper Configuration
         self.whisper_model_size = os.getenv("WHISPER_MODEL_SIZE", "base")
         self.whisper_device = os.getenv("WHISPER_DEVICE", "cpu")
@@ -134,7 +138,9 @@ class Config:
             Dictionary with configuration summary
         """
         return {
+            "ai_provider": self.ai_provider,
             "openai_model": self.openai_model,
+            "local_model": self.local_model,
             "openai_key_set": self.has_openai_key(),
             "whisper_model_size": self.whisper_model_size,
             "whisper_device": self.whisper_device,
