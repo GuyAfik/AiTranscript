@@ -75,7 +75,7 @@ class YouTubeService:
         output_path: str,
         start_time: Optional[str] = None,
         end_time: Optional[str] = None,
-    ) -> str:
+    ) -> tuple[str, str]:
         """
         Download YouTube video audio using yt-dlp.
 
@@ -86,7 +86,7 @@ class YouTubeService:
             end_time: Optional end time (e.g. "2:30" or "150")
 
         Returns:
-            Path to the downloaded audio file
+            Tuple of (Path to the downloaded audio file, Video title)
 
         Raises:
             Exception: If download fails
@@ -137,6 +137,7 @@ class YouTubeService:
             url = f"https://www.youtube.com/watch?v={video_id}"
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
+                video_title = info.get("title", "Unknown Title")
 
             # Find the downloaded file
             audio_file = os.path.join(output_path, f"{video_id}.mp3")
@@ -145,7 +146,7 @@ class YouTubeService:
                 raise Exception(f"Downloaded audio file not found: {audio_file}")
 
             logger.info(f"Successfully downloaded audio to: {audio_file}")
-            return audio_file
+            return audio_file, video_title
 
         except Exception as e:
             error_msg = f"Failed to download YouTube audio: {str(e)}"
@@ -187,7 +188,7 @@ class YouTubeService:
             temp_dir = tempfile.mkdtemp(prefix="youtube_audio_")
 
             # Download audio
-            audio_file = self._download_youtube_audio(
+            audio_file, video_title = self._download_youtube_audio(
                 video_id, temp_dir, start_time, end_time
             )
 
@@ -197,6 +198,7 @@ class YouTubeService:
             # Add source information
             result["source"] = "whisper_fallback"
             result["video_id"] = video_id
+            result["title"] = video_title
 
             logger.info(
                 f"Successfully transcribed with Whisper fallback: {len(result['text'])} characters"

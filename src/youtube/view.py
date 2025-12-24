@@ -56,6 +56,10 @@ def process_youtube_url(url: str, settings: Dict[str, Any]) -> None:
 
             st.session_state.transcript_result = result["text"]
 
+            # Display video title if available
+            if result.get("title"):
+                st.markdown(f"### 📺 {result['title']}")
+
             # Show different success message based on source
             if result.get("source") == "whisper_fallback":
                 st.success(

@@ -181,6 +181,27 @@ class UIComponents:
 
         if url:
             st.info(f"📎 URL: {url}")
+            
+            # Try to fetch video title preview
+            try:
+                from src.youtube.provider import YouTubeService
+                
+                # We need a lightweight way to get title without downloading
+                # Using a temporary service instance just for title extraction
+                service = YouTubeService()
+                video_id = service.extract_video_id(url)
+                
+                # Use yt-dlp to get metadata only
+                import yt_dlp
+                
+                with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    title = info.get("title")
+                    if title:
+                        st.markdown(f"**📺 Video:** {title}")
+            except Exception:
+                # Fail silently for preview to avoid disrupting UI
+                pass
 
         return {
             "url": url if url else None,
