@@ -2,6 +2,17 @@
 
 Voice transcription tool with AI-powered cleanup capabilities. Transcribe audio from YouTube videos, uploaded files, or live recordings, with intelligent summarization and message refinement using local LLM or OpenAI GPT.
 
+## 🎥 Demo
+
+### 1. Record Transcription
+![Record Transcription](docs/Record-transcription.gif)
+
+### 2. YouTube Transcription
+![YouTube Transcription](docs/Youtube-transcription.gif)
+
+### 3. Audio File Transcription
+![Audio File Transcription](docs/Audio-file-transcription.gif)
+
 ## ✨ Features
 
 - **Multiple Input Methods**:
