@@ -139,23 +139,37 @@ The application will open in your default browser at `http://localhost:8501`.
 aitranscript/
 ├── src/
 │   ├── __init__.py
-│   ├── services/
+│   ├── common/              # Shared services and utilities
 │   │   ├── __init__.py
-│   │   ├── youtube_service.py       # YouTube transcript extraction
-│   │   ├── audio_service.py         # Audio transcription (Whisper)
-│   │   ├── transcription_service.py # Voice recording handling
-│   │   └── ai_service.py            # AI cleanup and summarization
-│   ├── utils/
+│   │   ├── ai_processing.py # AI processing logic
+│   │   ├── ai_service.py    # AI service integration
+│   │   └── audio_service.py # Audio transcription (Whisper)
+│   ├── recording/           # Voice recording feature
 │   │   ├── __init__.py
-│   │   ├── validators.py            # Input validation utilities
-│   │   └── file_handler.py          # File operations and cleanup
-│   └── ui/
+│   │   ├── service.py
+│   │   └── view.py
+│   ├── ui/                  # UI components
+│   │   ├── __init__.py
+│   │   └── components.py
+│   ├── upload/              # File upload feature
+│   │   ├── __init__.py
+│   │   ├── service.py
+│   │   └── view.py
+│   ├── utils/               # Utilities
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── file_handler.py
+│   │   ├── time_utils.py
+│   │   └── validators.py
+│   └── youtube/             # YouTube feature
 │       ├── __init__.py
-│       └── components.py            # Reusable UI components
-├── app.py                           # Main Streamlit application
-├── pyproject.toml                   # Project configuration
-├── .env.example                     # Environment variables template
-└── README.md                        # This file
+│       ├── provider.py
+│       ├── service.py
+│       └── view.py
+├── app.py                   # Main Streamlit application
+├── pyproject.toml           # Project configuration
+├── .env.example             # Environment variables template
+└── README.md                # This file
 ```
 
 ## 🔧 Configuration
@@ -275,11 +289,9 @@ ruff check .
 ### Step-by-Step Guide
 
 1. **Configure Settings** (in sidebar):
-   - Select AI provider (Local LLM or OpenAI)
-   - Choose your model
-   - Enter your API key (only for OpenAI)
    - Select processing mode (Summarize or Refine)
    - Configure mode-specific options
+   - Note: AI Provider is configured via `.env` file
 
 2. **Choose Input Method**:
 
