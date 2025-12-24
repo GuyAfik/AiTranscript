@@ -140,6 +140,8 @@ class AudioTranscriptionService:
             if language:
                 transcribe_options["language"] = language
 
+            # Use faster-whisper if available for better performance on large files
+            # For now, we stick to standard whisper but we could optimize here
             result = self.model.transcribe(file_path, **transcribe_options)
 
             # Get audio duration
