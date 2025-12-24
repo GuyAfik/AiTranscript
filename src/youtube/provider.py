@@ -22,6 +22,7 @@ import tempfile
 from typing import Optional, List, Dict, Any
 from src.utils.validators import validate_youtube_url, extract_video_id_from_url
 from src.utils.file_handler import cleanup_temp_files
+from src.utils.time_utils import parse_time_string
 
 logger = logging.getLogger(__name__)
 
@@ -68,13 +69,21 @@ class YouTubeService:
         logger.info(f"Extracted video ID: {video_id}")
         return video_id
 
-    def _download_youtube_audio(self, video_id: str, output_path: str) -> str:
+    def _download_youtube_audio(
+        self,
+        video_id: str,
+        output_path: str,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+    ) -> str:
         """
         Download YouTube video audio using yt-dlp.
 
         Args:
             video_id: YouTube video ID
             output_path: Directory to save the audio file
+            start_time: Optional start time (e.g. "1:30" or "90")
+            end_time: Optional end time (e.g. "2:30" or "150")
 
         Returns:
             Path to the downloaded audio file
@@ -86,6 +95,10 @@ class YouTubeService:
             import yt_dlp
 
             logger.info(f"Downloading audio for video ID: {video_id}")
+
+            # Parse time range
+            start_seconds = parse_time_string(str(start_time)) if start_time else None
+            end_seconds = parse_time_string(str(end_time)) if end_time else None
 
             # Configure yt-dlp options
             ydl_opts = {
@@ -101,6 +114,24 @@ class YouTubeService:
                 "quiet": True,
                 "no_warnings": True,
             }
+
+            # Add download ranges if specified
+            if start_seconds is not None or end_seconds is not None:
+                logger.info(f"Downloading range: {start_seconds}s to {end_seconds}s")
+
+                def download_range_func(info, ydl):
+                    return [
+                        {
+                            "start_time": start_seconds if start_seconds is not None else 0,
+                            "end_time": end_seconds
+                            if end_seconds is not None
+                            else info.get("duration"),
+                        }
+                    ]
+
+                ydl_opts["download_ranges"] = download_range_func
+                # Force keyframes at cuts for better precision
+                ydl_opts["force_keyframes_at_cuts"] = True
 
             # Download audio
             url = f"https://www.youtube.com/watch?v={video_id}"
@@ -122,7 +153,11 @@ class YouTubeService:
             raise Exception(error_msg)
 
     def _transcribe_with_whisper(
-        self, video_id: str, language: Optional[str] = None
+        self,
+        video_id: str,
+        language: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Fallback method: Download YouTube audio and transcribe with Whisper.
@@ -130,6 +165,8 @@ class YouTubeService:
         Args:
             video_id: YouTube video ID
             language: Language code for transcription
+            start_time: Optional start time
+            end_time: Optional end time
 
         Returns:
             Dictionary containing transcription results
@@ -150,7 +187,9 @@ class YouTubeService:
             temp_dir = tempfile.mkdtemp(prefix="youtube_audio_")
 
             # Download audio
-            audio_file = self._download_youtube_audio(video_id, temp_dir)
+            audio_file = self._download_youtube_audio(
+                video_id, temp_dir, start_time, end_time
+            )
 
             # Transcribe with Whisper
             result = self.audio_service.transcribe_file(audio_file, language)
@@ -186,7 +225,12 @@ class YouTubeService:
                     logger.warning(f"Error cleaning up temp directory {temp_dir}: {e}")
 
     def get_transcript(
-        self, video_id: str, languages: Optional[List[str]] = None, use_fallback: bool = True
+        self,
+        video_id: str,
+        languages: Optional[List[str]] = None,
+        use_fallback: bool = True,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Fetch transcript from YouTube video by downloading audio and using Whisper.
@@ -198,6 +242,8 @@ class YouTubeService:
             video_id: YouTube video ID
             languages: Preferred languages (default: ['en'])
             use_fallback: Ignored (kept for compatibility)
+            start_time: Optional start time
+            end_time: Optional end time
 
         Returns:
             Dictionary containing:
@@ -228,7 +274,9 @@ class YouTubeService:
             # 2. Download audio
             # 3. Transcribe with Whisper
             # 4. Cleanup
-            result = self._transcribe_with_whisper(video_id, whisper_lang)
+            result = self._transcribe_with_whisper(
+                video_id, whisper_lang, start_time, end_time
+            )
 
             # Update source to reflect this is now the primary method
             result["source"] = "whisper_audio"
@@ -256,7 +304,12 @@ class YouTubeService:
         return ["auto-detect"]
 
     def get_transcript_from_url(
-        self, url: str, languages: Optional[List[str]] = None, use_fallback: bool = True
+        self,
+        url: str,
+        languages: Optional[List[str]] = None,
+        use_fallback: bool = True,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Convenience method to get transcript directly from URL with fallback support.
@@ -265,6 +318,8 @@ class YouTubeService:
             url: YouTube video URL
             languages: Preferred languages (default: ['en'])
             use_fallback: Whether to use Whisper fallback if transcript API fails
+            start_time: Optional start time
+            end_time: Optional end time
 
         Returns:
             Dictionary containing transcript data
@@ -273,4 +328,6 @@ class YouTubeService:
             Exception: If URL is invalid or transcript cannot be fetched
         """
         video_id = self.extract_video_id(url)
-        return self.get_transcript(video_id, languages, use_fallback)
+        return self.get_transcript(
+            video_id, languages, use_fallback, start_time, end_time
+        )

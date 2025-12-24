@@ -187,12 +187,12 @@ class UIComponents:
             return settings
 
     @staticmethod
-    def render_youtube_tab() -> Optional[str]:
+    def render_youtube_tab() -> Dict[str, Any]:
         """
         Render the YouTube input tab.
 
         Returns:
-            YouTube URL if provided, None otherwise
+            Dictionary containing URL and optional time range
         """
         st.markdown("### 📺 YouTube Video Transcription")
         st.markdown("Enter a YouTube URL to extract and summarize its transcript.")
@@ -203,10 +203,32 @@ class UIComponents:
             help="Paste the URL of any YouTube video with available captions",
         )
 
+        # Time range selection
+        st.markdown("#### ⏱️ Time Range (Optional)")
+        st.caption("Transcribe only a specific part of the video (leave empty for full video)")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            start_time = st.text_input(
+                "Start Time",
+                placeholder="e.g. 0:00 or 0",
+                help="Start time in MM:SS or seconds",
+            )
+        with col2:
+            end_time = st.text_input(
+                "End Time",
+                placeholder="e.g. 1:30 or 90",
+                help="End time in MM:SS or seconds",
+            )
+
         if url:
             st.info(f"📎 URL: {url}")
 
-        return url if url else None
+        return {
+            "url": url if url else None,
+            "start_time": start_time,
+            "end_time": end_time,
+        }
 
     @staticmethod
     def render_upload_tab() -> Optional[Any]:

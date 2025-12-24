@@ -33,6 +33,16 @@ def get_youtube_transcript(url: str, settings: Dict[str, Any]) -> Dict[str, Any]
 
     # Get transcript
     languages = [settings["language"]] if settings["language"] else ["en"]
-    result = youtube_service.get_transcript_from_url(url, languages)
+    
+    # Extract time range settings
+    start_time = settings.get("start_time")
+    end_time = settings.get("end_time")
+    
+    result = youtube_service.get_transcript_from_url(
+        url,
+        languages,
+        start_time=start_time,
+        end_time=end_time
+    )
 
     return result

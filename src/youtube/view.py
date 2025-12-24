@@ -20,7 +20,8 @@ def render_youtube_view(settings: Dict[str, Any]) -> None:
     Args:
         settings: User settings dictionary
     """
-    youtube_url = UIComponents.render_youtube_tab()
+    youtube_data = UIComponents.render_youtube_tab()
+    youtube_url = youtube_data.get("url")
 
     if st.button("🚀 Get Transcript", key="youtube_btn", disabled=st.session_state.processing):
         if not youtube_url:
@@ -31,6 +32,10 @@ def render_youtube_view(settings: Dict[str, Any]) -> None:
             st.session_state.summary_result = None
             st.session_state.key_points = None
             st.session_state.refined_message = None
+
+            # Add time range to settings
+            settings["start_time"] = youtube_data.get("start_time")
+            settings["end_time"] = youtube_data.get("end_time")
 
             process_youtube_url(youtube_url, settings)
 
