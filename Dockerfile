@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
@@ -10,10 +10,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Ollama
-RUN curl -fsSL https://ollama.ai/install.sh | sh
+RUN echo "insecure" > /root/.curlrc && \
+    curl -fsSL https://ollama.com/install.sh | sh && \
+    rm /root/.curlrc
 
 # Copy project files
-COPY pyproject.toml uv.lock* ./
+COPY pyproject.toml uv.lock* README.md ./
 COPY src/ ./src/
 COPY app.py ./
 COPY .streamlit/ ./.streamlit/
@@ -40,8 +42,8 @@ echo "Waiting for Ollama to start..."\n\
 sleep 5\n\
 \n\
 # Pull the default model\n\
-echo "Pulling llama2 model..."\n\
-ollama pull llama2\n\
+echo "Pulling mistral model..."\n\
+OLLAMA_HOST=0.0.0.0:11434 ollama pull\n\
 \n\
 # Start Streamlit\n\
 echo "Starting Streamlit..."\n\
